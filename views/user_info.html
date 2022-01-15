@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en" >
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Jekyll v4.0.1">
+    <title>User-info - Tuzi Char Romm</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.5/examples/sign-in/">
+
+    <!-- Bootstrap core CSS -->
+    <link href="/css/bootstrap.css" rel="stylesheet">
+
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+    </style>
+    <!-- Custom styles for this template -->
+    <link href="/css/signin.css" rel="stylesheet">
+
+    <script src="/js/jquery-3.5.1.min.js"></script>
+    <script src="/js/layer.js"></script>
+
+</head>
+<body class="text-center">
+<!-- Three columns of text below the carousel -->
+<div class="row">
+    <div class="col-lg-4">
+    </div>
+</div><!-- /.row -->
+<div class="container">
+    <div class="col-12">
+        <!-- <img id="img-avater"  class="bd-placeholder-img rounded-circle" width="140" height="140" src="/img/touxiang.png"
+             preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: 140x140"> -->
+        <title >{{ username }}</title>
+        <rect width="100%" height="100%" fill="#777"/>
+        <h2 >Username：{{ username }}</h2>
+        <form method="post" action="/users/modify_user">
+            <div class="form-group">
+                <label for="usr">Mailbox:</label>
+                <input type="text" class="form-control" id="usr" name="email" value="{{email}}" disabled>
+                <input type="hidden" name="_id" value="{{_id}}">
+            </div>
+            <div class="form-group">
+                <label for="nickname">NickName:</label>
+                <input  type="text" class="form-control" id="nickname" name="nickname" value="{{nickname}}"
+                       disabled>
+            </div>
+            <div class="form-group">
+                <label for="pwd">Password:</label>
+                <input type="text" class="form-control" id="pwd" name="password" value=""
+                       disabled>
+            </div>
+            
+            <button type="button" class="btn btn-info" onclick="show()">Modification</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <a href="/users" class="btn btn-primary">Return</a>
+        </form>
+    </div>
+</div><!-- /.row -->
+<div class="row">
+    <div class="col-lg-4">
+
+    </div>
+</div><!-- /.row -->
+
+
+</div><!-- /.container -->
+<script src="/js/jquery-3.5.1.min.js"></script>
+<script src="/js/bootstrap.js"></script>
+<script th:inline="javascript">
+    function show() {
+        console.log("ok")
+        $("#usr").removeAttr("disabled");
+        $("#pwd").removeAttr("disabled");
+        $("#nickname").removeAttr("disabled");
+        $("#customFile").removeAttr("disabled");
+    }
+
+</script>
+<script>
+
+</script>
+
+</body>
+</html>

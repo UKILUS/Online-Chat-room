@@ -1,0 +1,310 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>聊天室</title>
+
+  <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="/chat/css/demo.css" />
+  <link rel="stylesheet" type="text/css" href="/chat/css/normalize.css" />
+  <link rel="stylesheet" type="text/css" href="/chat/css/canvi.css" />
+  <link rel="stylesheet" type="text/css" href="/chat/css/login.css" />
+  <link rel="stylesheet" type="text/css" href="/chat/css/layui.css" />
+  <!--the css for jquery.mCustomScrollbar-->
+  <link rel="stylesheet" href="/chat/css/jquery.mCustomScrollbar.min.css" />
+  <!--the css for this plugin-->
+  <link rel="stylesheet" href="/chat/css/jquery.emoji.css" />
+  <link rel="stylesheet" type="text/css" href="/chat/css/csshake.min.css">
+  <style>
+    #message {
+      margin: auto;
+      margin-bottom: 155px;
+      margin-left: 230px;
+      padding: 0 20px;
+    }
+
+    .myvater {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .myvater img {
+      width: 62px;
+      height: 62px;
+      overflow: hidden;
+      border-radius: 50%;
+    }
+
+    .activeRoom {
+      margin-top: 20px;
+    }
+
+    .toolbar {
+      display: flex;
+      text-align: right;
+    }
+
+    .btn-send {
+      text-decoration: none;
+      border: 1px #ccc solid;
+      border-radius: 2px;
+      padding: 2px 4px;
+    }
+    .cur-line-users {
+      color: #fff;
+      font-weight: 700;
+      margin-top: 16px;
+      text-align: center;
+    }
+    .btn-return {
+      position: fixed;
+      right: 20px;
+      top: 20px;
+    }
+  </style>
+</head>
+
+<body style="background-color:rgba(236, 171, 193, 0.918)">
+  <div  class="btn-return">BACK</div>
+  <a href="/users" class="btn-return btn btn-primary">Rack</a>
+  <aside id="aside" class="myCanvasNav canvi-navbar" data-position="left" data-push-content="false"
+    style="width: 230px;" inert="" aria-hidden="true">
+    <div class="myvater" style="display: none;">
+      <span id="activeRoom" class="canvi-user-info__title"></span>
+    </div>
+    <div class="cur-line-users">USERCOUNT <span id="lineUsers"></span></div>
+    <div class="myvater">
+      <img src="/img/head.jpg" alt="">
+    </div>
+    <div id="canvi" class="canvi-user-info" style="padding-top: 20px;padding-bottom: 20px;">
+      <div class="canvi-user-info__data">
+        <span id="activeUser" class="canvi-user-info__meta"></span><br>
+      </div>
+    </div>
+    <ul id="cebian" class="canvi-navigation">
+    </ul>
+  </aside>
+
+  <main class="js-canvi-content canvi-content"></main>
+
+  <div>
+    <button id="btn" class="js-canvi-open-button--left btn"></button>
+    <div style="display: none;">
+      <div>
+        <span>User name</span>
+        <input id="nick" type="text">
+      </div>
+    </div>
+
+    <div id="message" style="display: none"></div>
+
+    <div id="footer" class="footer" style="left: 230px; right: 0; width: auto">
+      <div id="toolbar" style="padding: 5px;">
+        <a href="#" class="btn-send" onclick="send()">Send</a>
+      </div>
+      <div id="text" contenteditable="true"></div>
+    </div>
+  </div>
+</body>
+
+<script src="/chat/js/jquery.min.js"></script>
+<script src="/chat/js/canvi.js"></script>
+<script src="/chat/js/jquery.mousewheel-3.0.6.min.js"></script>
+<script src="/chat/js/jquery.mCustomScrollbar.min.js"></script>
+<script src="/chat/js/vue.min.js"></script>
+<script src="/chat/js/common.variate.js"></script>
+<script src="/chat/js/socket.io.min.js"></script>
+<script type="text/javascript">
+  let s_msg = "{{ msg }}";
+  let s_userid = "{{{_id}}}";
+  let s_username = "{{{username}}}";
+  let s_nickname = "{{{nickname}}}";
+
+  let socket = io.connect(location.origin);
+
+  //error function
+  socket.on('error', (err) => {
+    layer.msg(onerrorMsg, {
+      anim: 6
+    });
+  })
+
+
+  // ping call sever we alive
+  socket.on('ping', (event) => {})
+  // new message
+  socket.on('message', (event) => {
+    console.log('new message', event)
+    var msg = event.msg;
+    var nick = event.nickname;
+    if (event.type == 'msg') {
+      setMessageInnerHTML(nick, msg);
+    }
+  })
+  setTimeout(sendnick, 300)
+
+  // Tell Sever that the connection is not disconnected
+  function ping() {
+    let obj = {
+      type: 'ping'
+    }
+    socket.emit('ping', obj);
+  }
+
+  //Show room and nickname
+  function sendnick(nick) {
+    socket.emit('login', {
+      userid: s_userid,
+      nickname: s_nickname
+    })
+    document.getElementById('activeUser').innerText = 'User name: ' + s_nickname;
+    $('#btn').trigger("click");
+    getOnlionUser();
+    $("#footer").animate({
+      bottom: '0px'
+    }, 400);
+    $("#message").show();
+  }
+
+  //Listen to the window closing event, when the window is closed, take the initiative to close 
+  //the Websocket connection, to prevent the connection is not disconnected to close the window, the server will throw exceptions.
+  window.onbeforeunload = function () {
+    socket.emit('close', {
+      userid: s_userid
+    });
+    layer.alert(oncloseMsg, {
+      icon: 2
+    });
+  }
+
+  // Displays the message on the web page
+  function setMessageInnerHTML(nick, msg) {
+    var a = '<div class="botui-message-left"><div class="botui-message-content shake-constant shake-constant--hover">';
+    
+    console.log('test', nick, msg)
+    $("#message").append("<div class='sendUser'><b>" + nick + "</b></div>" + a + msg + b);
+    scrollToEnd();
+    $(".botui-message-content").animate({
+      'margin-left': '0px'
+    }, 200);
+  }
+
+  // Display your message on the web page
+  function setMessageInnerHTML2(nick, msg) {
+    var c ='<div class="botui-message-left"><div class="botui-message-content2 shake-constant shake-constant--hover">';
+    console.log('test', nick, msg)
+    $("#message").append("<div class='sendUser'><b>" + nick + "</b></div>" + c + msg + b);
+    scrollToEnd();
+    $(".botui-message-content").animate({
+      'margin-left': '0px'
+      
+    }, 200);
+  }
+
+  // Send a message
+  function send() {
+    var msgBak = document.getElementById('text').innerHTML;
+    var nick = document.getElementById('nick').value;
+   
+    var msg = document.getElementById('text').innerHTML;
+    if (msg != null && msg != "") {
+      msg = msg.replace(/"/g, "'");
+      let param = {
+        userid: s_userid,
+        nickname: s_nickname,
+        type: 'msg',
+        msg: msg,
+      }
+      var map2json = JSON.stringify(param);
+      if (map2json.length < 8000) {
+        socket.emit('sendMsg', param);
+        document.getElementById('text').innerHTML = null;
+        setMessageInnerHTML2(nick, msg);
+      } else {
+        $("#text").html(msgBak);
+        layer.msg("The text is too long, less pls", {
+          anim: 6
+        });
+      }
+    } else {
+      layer.msg("Don't send empty messages, more pls", {
+        anim: 6
+      });
+    }
+  }
+
+  // Automatically rolls to the bottom after sending the message
+  function scrollToEnd() {
+    var h = $("html,body").height() - $(window).height();
+    $("html,body").animate({
+      scrollTop: h
+    }, 200);
+  }
+
+  // Get all the users in the current room
+  function getOnlionUser() {
+    $.ajax({
+      type: "GET",
+      url: "/users/online",
+      data: {},
+      dataType: "json",
+      success: function (data) {
+        const { list } = data
+        if (list.length > 0) {
+          var onlineUsera = list.filter(f => f.userid !== s_userid);
+          $('#lineUsers').html(list.length)
+          $("#cebian").html("");
+          onlineUsera.forEach(function (user) {
+            var color = "#00ce46";
+            if (shieldMap.has("user-" + user.id)) {
+              color = "#FF3A43"
+            }
+            if (user.userid != $("#userId").val()) {
+              var html = '<li>\n' +
+                '                <a class="canvi-navigation__item">\n' +
+                '                    <span id="user-' + user.userid +
+                '" class="canvi-navigation__icon-wrapper" style="background: ' +
+                color + ';">\n' +
+                '                        <span class="canvi-navigation__icon icon-iconmonstr-code-13"></span>\n' +
+                '                    </span>\n' +
+                '                    <span class="canvi-navigation__text">' + user
+                .nickname + '</span>\n' +
+                '                </a>\n' +
+                '            </li>';
+              $("#cebian").append(html);
+            }
+          });
+        }
+      }
+    });
+  }
+
+  var t = new Canvi({
+    content: ".js-canvi-content",
+    isDebug: !1,
+    navbar: ".myCanvasNav",
+    openButton: ".js-canvi-open-button--left",
+    position: "left",
+    pushContent: !1,
+    speed: "0.2s",
+    width: "230px",
+    responsiveWidths: [{
+      breakpoint: "600px",
+      width: "230px"
+    }, {
+      breakpoint: "1280px",
+      width: "230px"
+    }, {
+      breakpoint: "1600px",
+      width: "230px"
+    }]
+  })
+
+  function setUserOuline(uid) {
+    $('#cebian #user-' + uid).css('background-color', '#aaa')
+  }
+
+</script>
+
+</html>
