@@ -1,4 +1,13 @@
-language:node_js
-node_js:
-   -0.4
-   -0.6
+sudo: false 
+ language: node_js 
+ node_js: 
+ - '16.11.1' 
+ cache: 
+ bundler: true 
+ directories: 
+ - node_modules 
+ install: 
+ - rm -rf node_modules 
+ - rm package-lock.json 
+ - npm cache clear --force 
+ - npm install 
